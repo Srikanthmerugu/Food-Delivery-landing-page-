@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>QuickBite | Lightning Fast Food Delivery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=Poppins:wght@900&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- GSAP & Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.0/dist/lenis.min.js"></script>
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        'montserrat': ['Montserrat', 'sans-serif'],
+        'poppins': ['Poppins', 'sans-serif'],
+        'playfair': ['Playfair Display', 'serif'],
+      },
+      colors: {
+        dark: "#0b0b0f",
+        accent: "#ff4d00",
+        accent2: "#ff6a33",
+        accent3: "#ff8e5c",
+        gold: "#FFD700",
+        deepred: "#8B0000",
+        olive: "#808000"
+      },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'text-shine': 'text-shine 3s ease-in-out infinite',
+        'blob': 'blob 10s infinite',
+        'zoom-in': 'zoom-in 1.5s ease-out forwards',
+        'slide-down': 'slide-down 0.5s ease-out',
+        'slide-up': 'slide-up 0.5s ease-out',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '50%': { transform: 'translateY(-30px) rotate(5deg)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { opacity: 1, boxShadow: '0 0 20px rgba(255, 77, 0, 0.5)' },
+          '50%': { opacity: 0.7, boxShadow: '0 0 40px rgba(255, 77, 0, 0.8)' },
+        },
+        'text-shine': {
+          '0%': { backgroundPosition: '0% 50%' },
+          '100%': { backgroundPosition: '100% 50%' },
+        },
+        blob: {
+          '0%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+          '100%': { transform: 'translate(0px, 0px) scale(1)' },
+        },
+        'zoom-in': {
+          '0%': { transform: 'scale(0.8)', opacity: 0 },
+          '100%': { transform: 'scale(1)', opacity: 1 },
+        },
+        'slide-down': {
+          '0%': { transform: 'translateY(-100%)', opacity: 0 },
+          '100%': { transform: 'translateY(0)', opacity: 1 },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)', opacity: 0 },
+          '100%': { transform: 'translateY(0)', opacity: 1 },
+        }
+      }
+    }
+  }
+}
+</script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: radial-gradient(ellipse at top, #0f0a07 0%, #0b0b0f 70%);
+  overflow-x: hidden;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='%23ff4d00' d='M16 3C8.832 3 3 8.832 3 16s5.832 13 13 13 13-5.832 13-13S23.168 3 16 3zm0 2c6.086 0 11 4.914 11 11s-4.914 11-11 11S5 22.086 5 16 9.914 5 16 5z'/%3E%3Ccircle fill='%23ff4d00' cx='16' cy='16' r='4'/%3E%3C/svg%3E") 16 16, auto;
+}
+
+/* Custom cursor */
+.custom-cursor {
+  position: fixed;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 77, 0, 0.8);
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transition: transform 0.1s ease;
+  box-shadow: 0 0 15px rgba(255, 77, 0, 0.5);
+}
+
+.cursor-follower {
+  position: fixed;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 77, 0, 0.4);
+  pointer-events: none;
+  z-index: 9998;
+  transition: all 0.3s ease-out;
+}
+
+/* Glass effect */
+.glass {
+  backdrop-filter: blur(25px) saturate(180%);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.glass-dark {
+  backdrop-filter: blur(30px) saturate(180%);
+  background: rgba(11, 11, 15, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-nav {
+  backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(11, 11, 15, 0.733);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Text effects */
+.gradient-text {
+  background: linear-gradient(90deg, #ff4d00, #ff8e5c, #ff4d00);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-shine 3s ease-in-out infinite alternate;
+}
+
+.cinematic-text {
+  font-family: 'Playfair Display', serif;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  position: relative;
+}
+
+.cinematic-text::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 100px;
+  height: 3px;
+  background: linear-gradient(90deg, #ff4d00, transparent);
+}
+
+/* Floating elements */
+.floating {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Food images */
+.food-image {
+  filter: drop-shadow(0 30px 50px rgba(0, 0, 0, 0.7));
+  border-radius: 30px;
+  object-fit: cover;
+  transform-origin: center;
+}
+
+/* Shine effect */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(30deg);
+  animation: shine 4s infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%) rotate(30deg); }
+  100% { transform: translateX(100%) rotate(30deg); }
+}
+
+/* Scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 4px;
+  background: linear-gradient(90deg, #ff4d00, #ff8e5c, #ff4d00);
+  background-size: 200% 100%;
+  z-index: 10000;
+  transition: width 0.1s;
+  animation: text-shine 3s ease-in-out infinite;
+}
+
+/* Burger glow effect */
+.burger-glow {
+  filter: drop-shadow(0 0 40px rgba(255, 77, 0, 0.6)) drop-shadow(0 0 80px rgba(255, 77, 0, 0.3));
+}
+
+/* Particle effects */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 77, 0, 0.6);
+  pointer-events: none;
+  filter: blur(1px);
+}
+
+/* Brand logos */
+.brand-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Delivery animation */
+.delivery-bike {
+  animation: delivery-ride 2s ease-in-out infinite;
+}
+
+@keyframes delivery-ride {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  25% { transform: translateX(10px) rotate(5deg); }
+  75% { transform: translateX(-10px) rotate(-5deg); }
+}
+
+/* Food item card */
+.food-card {
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.food-card:hover {
+  transform: translateY(-10px);
+  border-color: rgba(255, 77, 0, 0.3);
+  box-shadow: 0 20px 40px rgba(255, 77, 0, 0.2);
+}
+
+/* Navbar link animation */
+.nav-link {
+  position: relative;
+  padding: 8px 0;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #ff4d00, #ff8e5c);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Section transition */
+.section-transition {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s ease;
+}
+
+.section-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Responsive container */
+.container-responsive {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 640px) {
+  .container-responsive {
+    max-width: 640px;
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container-responsive {
+    max-width: 768px;
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container-responsive {
+    max-width: 1024px;
+    padding: 0 3rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container-responsive {
+    max-width: 1280px;
+    padding: 0 4rem;
+  }
+}
+
+@media (min-width: 1536px) {
+  .container-responsive {
+    max-width: 1536px;
+    padding: 0 5rem;
+  }
+}
+</style>
+</head>
+
+<body class="text-white overflow-x-hidden font-montserrat">
+
+<!-- Custom Cursor -->
+<div class="custom-cursor"></div>
+<div class="cursor-follower"></div>
+
+<!-- Scroll Progress -->
+<div class="scroll-progress"></div>
+
+<!-- GLASSMORPHISM NAVBAR -->
+
+
+<!-- Animated Background -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+  <div class="absolute top-1/4 left-1/4 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[600px] lg:h-[600px] rounded-full bg-gradient-to-r from-accent/10 to-accent2/10 blur-3xl animate-pulse"></div>
+  <div class="absolute bottom-1/4 right-1/4 w-[250px] h-[250px] sm:w-[350px] sm:h-[350px] lg:w-[500px] lg:h-[500px] rounded-full bg-gradient-to-r from-accent3/5 to-transparent blur-3xl"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[600px] sm:h-[600px] lg:w-[800px] lg:h-[800px] rounded-full bg-gradient-to-r from-transparent via-accent/5 to-transparent blur-3xl"></div>
+</div>
+
+<!-- Floating Particles Container -->
+<div id="particles-container" class="fixed inset-0 z-5 pointer-events-none"></div>
+
+<!-- HERO SECTION - Full Screen -->
+<section id="home" class="h-screen flex items-center relative z-10 pt-10">
+  <div class="container-responsive">
+    <div class="flex flex-col lg:flex-row items-center mt-25">
+      <!-- Left Side Content -->
+      <div class="w-full lg:w-1/2 space-y-6 sm:space-y-4 lg:space-y-10 z-20">
+        <!-- Badge -->
+        <div class="inline-flex items-center px-4 py-2 sm:px-5 sm:py-3 glass rounded-full text-xs sm:text-sm font-semibold mb-2 border-l-4 border-accent animate-zoom-in">
+          <i class="fas fa-bolt text-accent mr-2 sm:mr-3 text-sm sm:text-lg"></i>
+          <span class="tracking-wider">LIGHTNING FAST DELIVERY</span>
+        </div>
+        
+        <!-- Main Title -->
+        <div class="space-y-3 sm:space-y-4 lg:space-y-3">
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-tight font-poppins">
+            <span class="block text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl mb-1 md:mb-2 font-playfair cinematic-text">CRAVING SOLVED IN</span>
+            <span class="gradient-text block">10 MINUTES</span>
+            <span class="text-white block text-base sm:text-lg md:text-xl lg:text-2xl xl:text-4xl mt-1 sm:mt-2 lg:mt-4 font-light">Or Your Money Back</span>
+          </h1>
+          
+          <!-- Divider -->
+          <div class="w-20 sm:w-24 md:w-28 lg:w-32 h-1 bg-gradient-to-r from-accent to-transparent my-3 sm:my-4 lg:my-6"></div>
+          
+          <!-- Description -->
+          <p class="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-xl leading-relaxed">
+            Get your favorite burgers, pizzas, fries, and more from McDonald's, Domino's, KFC, 
+            <span class="text-accent font-semibold">delivered to your doorstep in under 10 minutes.</span> 
+            The fastest food delivery app in town.
+          </p>
+        </div>
+        
+        <!-- Brands We Deliver -->
+        <!-- <div class="pt-2 sm:pt-4">
+          <p class="text-gray-400 text-xs sm:text-sm mb-3 sm:mb-4">FEATURED RESTAURANTS</p>
+          <div class="flex flex-wrap gap-2 sm:gap-3 lg:gap-4">
+            <div class="brand-logo hover:scale-110 transition-transform w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14">
+              <i class="fas fa-hamburger text-accent text-sm sm:text-base lg:text-lg"></i>
+            </div>
+            <div class="brand-logo hover:scale-110 transition-transform w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14">
+              <i class="fas fa-pizza-slice text-accent2 text-sm sm:text-base lg:text-lg"></i>
+            </div>
+            <div class="brand-logo hover:scale-110 transition-transform w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14">
+              <i class="fas fa-drumstick-bite text-deepred text-sm sm:text-base lg:text-lg"></i>
+            </div>
+            <div class="brand-logo hover:scale-110 transition-transform w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14">
+              <i class="fas fa-ice-cream text-gold text-sm sm:text-base lg:text-lg"></i>
+            </div>
+            <div class="brand-logo hover:scale-110 transition-transform w-10 h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14">
+              <i class="fas fa-coffee text-olive text-sm sm:text-base lg:text-lg"></i>
+            </div>
+          </div>
+        </div> -->
+        
+        <!-- CTA Buttons -->
+        <div class="flex flex-wrap gap-3 sm:gap-4 ">
+          <button class="px-6 py-3 sm:px-7 sm:py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-accent to-accent2 rounded-full font-bold text-sm sm:text-base lg:text-lg shine relative overflow-hidden group flex items-center hover:scale-105 transition-transform duration-300 w-full sm:w-auto justify-center">
+            <span class="relative z-10 flex items-center">
+              <i class="fas fa-download mr-2 sm:mr-3 text-sm sm:text-base lg:text-xl"></i>
+              Download App
+            </span>
+            <div class="absolute inset-0 bg-gradient-to-r from-accent2 to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+          
+          <button class="px-6 py-3 sm:px-7 sm:py-3 lg:px-8 lg:py-4 glass rounded-full font-bold text-sm sm:text-base lg:text-lg group flex items-center hover:scale-105 transition-transform duration-300 w-full sm:w-auto justify-center">
+            <span class="relative z-10 flex items-center">
+              <i class="fas fa-play-circle mr-2 sm:mr-3"></i>
+              Watch Demo
+            </span>
+          </button>
+        </div>
+        
+        <!-- Stats -->
+       
+      </div>
+      
+      <!-- Right Side Burger Image -->
+      <div class="w-full lg:w-1/2 flex justify-center items-center mt-8 sm:mt-10 lg:mt-0 relative z-20">
+        <div class="relative">
+          <!-- Burger Image -->
+          <img id="hero-burger" class="food-image w-[250px] sm:w-[350px] md:w-[400px] lg:w-[450px] xl:w-[500px] 2xl:w-[600px] burger-glow floating" 
+          src="./burger.png"
+          alt="Juicy Burger"
+          style="animation-delay: 0.3s">
+          
+          <!-- Delivery Bike Floating -->
+          <div class="absolute -bottom-6 -right-6 sm:-bottom-8 sm:-right-8 lg:-bottom-10 lg:-right-10 delivery-bike">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 rounded-full bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center">
+              <i class="fas fa-motorcycle text-2xl sm:text-3xl lg:text-4xl text-accent"></i>
+            </div>
+          </div>
+          
+          <!-- Timer Badge -->
+          <div class="absolute -top-4 -left-4 sm:-top-6 sm:-left-6 lg:-top-6 lg:-left-6">
+            <div class="px-4 py-2 sm:px-5 sm:py-2 lg:px-6 lg:py-3 glass rounded-full font-bold text-accent flex items-center text-xs sm:text-sm">
+              <i class="fas fa-clock mr-1 sm:mr-2"></i>
+              <span>10 MIN DELIVERY</span>
+            </div>
+          </div>
+          
+          <!-- Floating Food Items -->
+          <div class="absolute -top-6 right-4 sm:-top-8 sm:right-8 lg:-top-10 lg:right-10">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-accent2/20 to-transparent flex items-center justify-center">
+              <img src="./pizza.png" alt="Pizza" class="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12">
+            </div>
+          </div>
+          
+          <div class="absolute bottom-12 -left-4 sm:bottom-16 sm:-left-6 lg:bottom-20 lg:-left-10">
+            <div class="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center">
+              <img src="./fries.png" alt="Fries" class="w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10">
+            </div>
+          </div>
+          
+          <!-- Glowing effect behind burger -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] sm:w-[115%] sm:h-[115%] lg:w-[120%] lg:h-[120%] rounded-full bg-gradient-to-r from-accent/10 to-accent2/10 blur-3xl -z-10"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Scroll Down Indicator -->
+    <!-- <div class="absolute bottom-6 sm:bottom-8 lg:bottom-10 left-1/2 -translate-x-1/2 animate-bounce hidden sm:block">
+      <a href="#menu" class="flex flex-col items-center text-gray-400 hover:text-accent transition-colors">
+        <span class="text-xs sm:text-sm mb-1 sm:mb-2">Explore Menu</span>
+        <div class="w-px h-8 sm:h-12 bg-gradient-to-b from-accent to-transparent"></div>
+      </a>
+    </div> -->
+  </div>
+</section>
+
+<!-- SECTION 2 — FOOD CATEGORIES -->
+<section id="menu" class="py-16 sm:py-20 lg:py-25 relative z-10">
+  <div class="container-responsive">
+    <div class="section-transition">
+      <!-- Section Header -->
+      <div class="text-center mb-10 sm:mb-12 lg:mb-16">
+        <div class="inline-flex items-center px-4 py-2 sm:px-5 sm:py-3 glass rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4 border-l-4 border-deepred">
+          <i class="fas fa-utensils text-deepred mr-2 sm:mr-3 text-sm sm:text-lg"></i>
+          <span class="tracking-wider">EXPLORE OUR MENU</span>
+        </div>
+        
+        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black font-playfair mb-4 sm:mb-6">
+          Your <span class="gradient-text">Favorite</span> Foods
+        </h2>
+        
+        <p class="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl sm:max-w-3xl mx-auto leading-relaxed px-4">
+          From juicy burgers to cheesy pizzas, crispy fries to refreshing drinks - 
+          <span class="text-accent font-semibold">we deliver everything you crave.</span>
+        </p>
+      </div>
+      
+      <!-- Food Categories Grid -->
+      <div class="grid grid-cols-1 relative sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <!-- Burger Category -->
+        <div class="glass-dar p-6 sm:p-8 rounded-3xl food-card group">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <i class="fas fa-hamburger text-2xl sm:text-3xl text-accent"></i>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-center">Burgers & Wraps</h3>
+          <p class="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 text-center">
+            Juicy beef burgers, chicken burgers, veggie options from McDonald's, Burger King, and more.
+          </p>
+          <!-- <div class="text-accent font-semibold flex items-center justify-center">
+            <span>Order Now</span>
+            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+          </div> -->
+          <div class="mt-4 sm:mt-6">
+            <img src="./burger.png" alt="Burger" class="w-32 sm:w-40 mx-auto opacity-80 group-hover:opacity-100 transition-opacity">
+          </div>
+        </div>
+        
+        <!-- Pizza Category -->
+        <div class="glass-dar p-6 sm:p-8 rounded-3xl food-card group">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-accent2/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <i class="fas fa-pizza-slice text-2xl sm:text-3xl text-accent2"></i>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-center">Pizzas & Pastas</h3>
+          <p class="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 text-center">
+            Freshly baked pizzas, loaded pastas from Domino's, Pizza Hut, and local favorites.
+          </p>
+          <!-- <div class="text-accent2 font-semibold flex items-center justify-center">
+            <span>Order Now</span>
+            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+          </div> -->
+          <div class="mt-4 sm:mt-6">
+            <img src="./pizza.png" alt="Pizza" class="w-32 sm:w-40  mx-auto  opacity-80 group-hover:opacity-100 transition-opacity">
+          </div>
+        </div>
+        
+        <!-- Fries & Snacks -->
+        <div class="glass-dar p-6 sm:p-8 rounded-3xl food-card group">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <i class="fas fa-cocktail text-2xl sm:text-3xl text-accent2"></i>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-center">Fries & Snacks</h3>
+          <p class="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 text-center">
+            Crispy fries, nachos, chicken wings, and all your favorite snacks from KFC, Wendy's, etc.
+          </p>
+          <!-- <div class="text-gold font-semibold flex items-center justify-center">
+            <span>Order Now</span>
+            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+          </div> -->
+          <div class="mt-4 sm:mt-6">
+            <img src="./fries.png" alt="Fries" class="w-32 sm:w-40 mx-auto opacity-80 group-hover:opacity-100 transition-opacity">
+          </div>
+        </div>
+        
+        <!-- Drinks & Desserts -->
+        <!-- <div class="glass-dar p-6 sm:p-8 rounded-3xl food-card group">
+          <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-olive/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+            <i class="fas fa-cocktail text-2xl sm:text-3xl text-olive"></i>
+          </div>
+          <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-center">Drinks & Desserts</h3>
+          <p class="text-gray-400 text-sm sm:text-base mb-4 sm:mb-6 text-center">
+            Cold drinks, milkshakes, ice creams, cakes, and sweet treats to complete your meal.
+          </p>
+          <div class="text-olive font-semibold flex items-center justify-center">
+            <span>Order Now</span>
+            <i class="fas fa-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+          </div>
+          <div class="mt-4 sm:mt-6">
+            <div class="w-32 h-24 sm:w-40 sm:h-32 mx-auto flex items-center justify-center">
+              <i class="fas fa-ice-cream text-4xl sm:text-6xl text-gray-400"></i>
+            </div>
+          </div>
+        </div> -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3 — RESTAURANTS -->
+<section id="restaurants" class="py-16 sm:py-20 lg:py-25 relative z-10">
+  <div class="container-responsive">
+    <div class="section-transition">
+      <!-- Section Header -->
+      <div class="text-center mb-10 sm:mb-12 lg:mb-16">
+        <div class="inline-flex items-center px-4 py-2 sm:px-5 sm:py-3 glass rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4 border-l-4 border-gold">
+          <i class="fas fa-store text-gold mr-2 sm:mr-3 text-sm sm:text-lg"></i>
+          <span class="tracking-wider">TOP RESTAURANT PARTNERS</span>
+        </div>
+        
+        <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black font-playfair mb-4 sm:mb-6">
+          Your Favorite <span class="gradient-text">Restaurants</span>
+        </h2>
+        
+        <p class="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl sm:max-w-3xl mx-auto leading-relaxed px-4">
+          Order from the best restaurants in town. 
+          <span class="text-accent font-semibold">All delivered in under 10 minutes.</span>
+        </p>
+      </div>
+      
+      <!-- Restaurants Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-16 lg:mb-20">
+        <!-- McDonald's -->
+        <div class="glass-dark p-4 sm:p-6 rounded-3xl text-center group hover:scale-105 transition-transform">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-red-600/20 to-transparent flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fab fa-mdb text-xl sm:text-2xl lg:text-3xl text-red-500"></i>
+          </div>
+          <h4 class="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">McDonald's</h4>
+          <p class="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">Burgers • Fries • Shakes</p>
+          <div class="text-accent font-semibold text-sm sm:text-base">8 min delivery</div>
+        </div>
+        
+        <!-- Domino's -->
+        <div class="glass-dark p-4 sm:p-6 rounded-3xl text-center group hover:scale-105 transition-transform">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-blue-600/20 to-transparent flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fas fa-pizza-slice text-xl sm:text-2xl lg:text-3xl text-blue-500"></i>
+          </div>
+          <h4 class="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">Domino's</h4>
+          <p class="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">Pizza • Pasta • Sides</p>
+          <div class="text-accent font-semibold text-sm sm:text-base">9 min delivery</div>
+        </div>
+        
+        <!-- KFC -->
+        <div class="glass-dark p-4 sm:p-6 rounded-3xl text-center group hover:scale-105 transition-transform">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-red-700/20 to-transparent flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fas fa-drumstick-bite text-xl sm:text-2xl lg:text-3xl text-red-600"></i>
+          </div>
+          <h4 class="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">KFC</h4>
+          <p class="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">Chicken • Burgers • Fries</p>
+          <div class="text-accent font-semibold text-sm sm:text-base">10 min delivery</div>
+        </div>
+        
+        <!-- Burger King -->
+        <div class="glass-dark p-4 sm:p-6 rounded-3xl text-center group hover:scale-105 transition-transform">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-yellow-600/20 to-transparent flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fas fa-burger text-xl sm:text-2xl lg:text-3xl text-yellow-500"></i>
+          </div>
+          <h4 class="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">Burger King</h4>
+          <p class="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">Whoppers • Fries • Shakes</p>
+          <div class="text-accent font-semibold text-sm sm:text-base">8 min delivery</div>
+        </div>
+        
+        <!-- Starbucks -->
+        <div class="glass-dark p-4 sm:p-6 rounded-3xl text-center group hover:scale-105 transition-transform">
+          <div class="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 rounded-full bg-gradient-to-br from-green-600/20 to-transparent flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <i class="fas fa-coffee text-xl sm:text-2xl lg:text-3xl text-green-500"></i>
+          </div>
+          <h4 class="text-base sm:text-lg lg:text-xl font-bold mb-1 sm:mb-2">Starbucks</h4>
+          <p class="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3">Coffee • Tea • Pastries</p>
+          <div class="text-accent font-semibold text-sm sm:text-base">7 min delivery</div>
+        </div>
+      </div>
+      
+      <!-- Pizza Showcase -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-12 lg:gap-16 items-center">
+        <!-- Left side - Pizza Image -->
+        <div class="relative order-2 lg:order-1">
+          <div class="relative" id="pizza-container">
+            <img id="pizza-image" class="food-image w-[280px] sm:w-[350px] md:w-[400px] lg:w-[450px] xl:w-[500px] mx-auto floating" 
+            src="./Multi.png"
+            alt="Delicious Pizza"
+            style="animation-delay: 0.5s">
+            
+            <!-- Pizza Badge -->
+            <div class="absolute -top-4 -right-4 sm:-top-6 sm:-right-6">
+              <div class="px-4 py-2 sm:px-5 sm:py-2 lg:px-6 lg:py-3 glass rounded-full font-bold text-accent2 flex items-center text-xs sm:text-sm">
+                <i class="fas fa-fire mr-1 sm:mr-2"></i>
+                <span>HOT & FRESH</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right side - Pizza Content -->
+        <div class="space-y-6 sm:space-y-8 order-1 lg:order-2">
+          <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black font-playfair">
+            Fresh <span class="gradient-text">Pizza</span> in 9 Minutes
+          </h2>
+          
+          <p class="text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed">
+            Get piping hot, cheesy pizza delivered straight from the oven to your door.
+            <span class="text-accent font-semibold">Domino's, Pizza Hut, Papa John's - all your favorites,</span>
+            delivered faster than you can preheat your own oven.
+          </p>
+          
+          <!-- Pizza Types -->
+          <div class="grid grid-cols-2 gap-3 sm:gap-4 pt-4 sm:pt-6 lg:pt-8">
+            <div class="glass p-3 sm:p-4 rounded-2xl hover:scale-105 transition-transform">
+              <h4 class="font-bold mb-1 sm:mb-2 text-sm sm:text-base">Pepperoni</h4>
+              <p class="text-gray-400 text-xs sm:text-sm">Classic favorite</p>
+            </div>
+            <div class="glass p-3 sm:p-4 rounded-2xl hover:scale-105 transition-transform">
+              <h4 class="font-bold mb-1 sm:mb-2 text-sm sm:text-base">Margherita</h4>
+              <p class="text-gray-400 text-xs sm:text-sm">Fresh & simple</p>
+            </div>
+            <div class="glass p-3 sm:p-4 rounded-2xl hover:scale-105 transition-transform">
+              <h4 class="font-bold mb-1 sm:mb-2 text-sm sm:text-base">BBQ Chicken</h4>
+              <p class="text-gray-400 text-xs sm:text-sm">Smoky goodness</p>
+            </div>
+            <div class="glass p-3 sm:p-4 rounded-2xl hover:scale-105 transition-transform">
+              <h4 class="font-bold mb-1 sm:mb-2 text-sm sm:text-base">Veg Supreme</h4>
+              <p class="text-gray-400 text-xs sm:text-sm">Loaded veggies</p>
+            </div>
+          </div>
+          
+          <div class="pt-6 sm:pt-8">
+            <button class="px-6 py-3 sm:px-7 sm:py-3 lg:px-8 lg:py-4 bg-gradient-to-r from-accent2 to-accent rounded-full font-bold text-sm sm:text-base lg:text-lg shine relative overflow-hidden group w-full sm:w-auto">
+              <span class="relative z-10 flex items-center justify-center">
+                <i class="fas fa-shopping-bag mr-2 sm:mr-3"></i>
+                Order Pizza Now
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4 — DOWNLOAD APP -->
+<section id="download" class="py-16 sm:py-20 lg:py-25 relative z-10">
+  <div class="container-responsive">
+    <div class="text-center section-transition">
+      <div class="space-y-10 sm:space-y-12">
+        <!-- Section Header -->
+        <div>
+          <div class="inline-flex items-center px-4 py-2 sm:px-5 sm:py-3 glass rounded-full text-xs sm:text-sm font-semibold mb-3 sm:mb-4 border-l-4 border-accent">
+            <i class="fas fa-mobile-alt text-accent mr-2 sm:mr-3 text-sm sm:text-lg"></i>
+            <span class="tracking-wider">DOWNLOAD OUR APP</span>
+          </div>
+          
+          <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black font-playfair mb-4 sm:mb-6">
+            Get Food <span class="gradient-text">Faster</span> Than Ever
+          </h2>
+          
+          <p class="text-gray-300 text-sm sm:text-base md:text-lg lg:text-xl max-w-2xl sm:max-w-3xl mx-auto mt-4 sm:mt-6 leading-relaxed px-4">
+            Join 1 million+ happy customers who get their cravings satisfied in minutes.
+            <span class="text-accent font-semibold">Download the QuickBite app now</span> 
+            and get 50% off on your first order!
+          </p>
+        </div>
+        
+        <!-- App Features -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div class="glass-dark p-6 sm:p-8 rounded-3xl hover:scale-105 transition-transform">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-accent/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <i class="fas fa-bolt text-2xl sm:text-3xl text-accent"></i>
+            </div>
+            <h4 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Lightning Fast</h4>
+            <p class="text-gray-400 text-sm sm:text-base">10-minute delivery guarantee or your money back</p>
+          </div>
+          
+          <div class="glass-dark p-6 sm:p-8 rounded-3xl hover:scale-105 transition-transform">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-accent2/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <i class="fas fa-map-marker-alt text-2xl sm:text-3xl text-accent2"></i>
+            </div>
+            <h4 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Live Tracking</h4>
+            <p class="text-gray-400 text-sm sm:text-base">Watch your food travel in real-time with GPS tracking</p>
+          </div>
+          
+          <div class="glass-dark p-6 sm:p-8 rounded-3xl hover:scale-105 transition-transform">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-gold/20 to-transparent flex items-center justify-center mx-auto mb-4 sm:mb-6">
+              <i class="fas fa-percentage text-2xl sm:text-3xl text-gold"></i>
+            </div>
+            <h4 class="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Best Deals</h4>
+            <p class="text-gray-400 text-sm sm:text-base">Exclusive discounts and cashback on every order</p>
+          </div>
+        </div>
+        
+        <!-- Download Buttons -->
+        <div class="pt-8 sm:pt-12">
+          <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8">Available on All Platforms</h3>
+          
+          <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+            <!-- iOS Button -->
+            <button class="px-8 py-4 sm:px-9 sm:py-4 lg:px-10 lg:py-5 glass rounded-2xl font-bold text-sm sm:text-base lg:text-lg group hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+              <div class="flex items-center">
+                <i class="fab fa-apple text-2xl sm:text-3xl mr-3 sm:mr-4"></i>
+                <div class="text-left">
+                  <div class="text-xs sm:text-sm text-gray-400">Download on</div>
+                  <div class="text-sm sm:text-base">App Store</div>
+                </div>
+              </div>
+            </button>
+            
+            <!-- Android Button -->
+            <button class="px-8 py-4 sm:px-9 sm:py-4 lg:px-10 lg:py-5 bg-gradient-to-r from-accent to-accent2 rounded-2xl font-bold text-sm sm:text-base lg:text-lg shine group hover:scale-105 transition-transform duration-300 flex items-center justify-center">
+              <div class="flex items-center">
+                <i class="fab fa-google-play text-2xl sm:text-3xl mr-3 sm:mr-4"></i>
+                <div class="text-left">
+                  <div class="text-xs sm:text-sm">Get it on</div>
+                  <div class="text-sm sm:text-base">Google Play</div>
+                </div>
+              </div>
+            </button>
+          </div>
+          
+          <!-- Final CTA -->
+          <div class="pt-12 sm:pt-16">
+            <h3 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-6 sm:mb-8">What Are You Waiting For?</h3>
+            <button class="px-10 py-5 sm:px-12 sm:py-5 lg:px-14 lg:py-6 bg-gradient-to-r from-accent via-accent2 to-accent rounded-full text-lg sm:text-xl lg:text-2xl font-black shine relative overflow-hidden group hover:scale-105 transition-transform duration-300 w-full sm:w-auto">
+              <span class="relative z-10 flex items-center justify-center">
+                <i class="fas fa-download mr-3 sm:mr-4 text-xl sm:text-2xl lg:text-3xl"></i>
+                DOWNLOAD & GET 50% OFF
+              </span>
+              <div class="absolute inset-0 bg-gradient-to-r from-accent2 to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            </button>
+            
+            <p class="text-gray-400  sm:mt-8 text-sm sm:text-base mt-15">Join 1 million+ satisfied customers enjoying lightning-fast food delivery</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="py-10 sm:py-12 px-4 sm:px-6 lg:px-20 border-t border-gray-800/30 relative z-10">
+  <div class="container-responsive">
+    <div class="flex flex-col md:flex-row justify-between items-center">
+      <div class="mb-6 md:mb-0">
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-accent to-accent2 flex items-center justify-center">
+            <i class="fas fa-bolt text-lg sm:text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl sm:text-2xl font-bold gradient-text">QUICKBITE</h3>
+            <p class="text-gray-400 text-xs sm:text-sm">Food at Lightning Speed</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex space-x-4 sm:space-x-6">
+        <a href="#" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform">
+          <i class="fab fa-instagram text-sm sm:text-base"></i>
+        </a>
+        <a href="#" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform">
+          <i class="fab fa-twitter text-sm sm:text-base"></i>
+        </a>
+        <a href="#" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform">
+          <i class="fab fa-facebook text-sm sm:text-base"></i>
+        </a>
+        <a href="#" class="w-10 h-10 sm:w-12 sm:h-12 rounded-full glass flex items-center justify-center hover:scale-110 transition-transform">
+          <i class="fab fa-youtube text-sm sm:text-base"></i>
+        </a>
+      </div>
+    </div>
+    
+    <div class="text-center mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-800/30">
+      <p class="text-gray-500 text-xs sm:text-sm">
+        <i class="fas fa-bolt mr-2"></i>Lightning Fast Delivery • 10-Minute Guarantee • © 2024 QuickBite
+      </p>
+      <p class="text-gray-600 text-xs mt-2">Creative & Designed by QuickBite Team</p>
+    </div>
+  </div>
+</footer>
+
+<!-- ULTIMATE ANIMATIONS -->
+<script>
+// Initialize Lenis smooth scroll
+const lenis = new Lenis({
+  duration: 1.5,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+  smoothTouch: true,
+  smooth: true,
+  direction: 'vertical',
+  gestureDirection: 'vertical',
+});
+
+function raf(time) {
+  lenis.raf(time);
+  requestAnimationFrame(raf);
+}
+requestAnimationFrame(raf);
+
+// Custom cursor
+const cursor = document.querySelector('.custom-cursor');
+const cursorFollower = document.querySelector('.cursor-follower');
+
+if (cursor && cursorFollower) {
+  document.addEventListener('mousemove', (e) => {
+    cursor.style.left = e.clientX - 12 + 'px';
+    cursor.style.top = e.clientY - 12 + 'px';
+    
+    gsap.to(cursorFollower, {
+      duration: 0.5,
+      left: e.clientX - 24,
+      top: e.clientY - 24,
+      ease: "power2.out"
+    });
+  });
+
+  // Interactive cursor effects
+  document.querySelectorAll('button, .glass, .food-image, .food-card, .nav-link, a').forEach(element => {
+    element.addEventListener('mouseenter', () => {
+      gsap.to(cursor, {duration: 0.2, scale: 1.8, backgroundColor: "rgba(255, 77, 0, 1)"});
+      gsap.to(cursorFollower, {duration: 0.3, scale: 1.5, borderColor: "rgba(255, 77, 0, 0.8)", borderWidth: "3px"});
+    });
+    
+    element.addEventListener('mouseleave', () => {
+      gsap.to(cursor, {duration: 0.2, scale: 1, backgroundColor: "rgba(255, 77, 0, 0.8)"});
+      gsap.to(cursorFollower, {duration: 0.3, scale: 1, borderColor: "rgba(255, 77, 0, 0.4)", borderWidth: "2px"});
+    });
+  });
+}
+
+// Scroll progress bar
+window.addEventListener('scroll', () => {
+  const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+  const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+  const scrolled = (winScroll / height) * 100;
+  if (document.querySelector('.scroll-progress')) {
+    document.querySelector('.scroll-progress').style.width = scrolled + '%';
+  }
+});
+
+// Particle system
+function createParticles() {
+  const container = document.getElementById('particles-container');
+  if (!container) return;
+  
+  // Adjust particle count based on screen size
+  const particleCount = window.innerWidth < 640 ? 20 : 
+                        window.innerWidth < 1024 ? 40 : 60;
+  
+  // Clear existing particles
+  container.innerHTML = '';
+  
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement('div');
+    particle.classList.add('particle');
+    
+    // Random properties
+    const size = Math.random() * 8 + 2;
+    const posX = Math.random() * 100;
+    const posY = Math.random() * 100;
+    const delay = Math.random() * 20;
+    const duration = Math.random() * 20 + 15;
+    const color = Math.random() > 0.7 ? 'rgba(255, 215, 0, 0.4)' : 
+                  Math.random() > 0.5 ? 'rgba(255, 106, 51, 0.4)' : 
+                  'rgba(255, 77, 0, 0.4)';
+    
+    particle.style.width = `${size}px`;
+    particle.style.height = `${size}px`;
+    particle.style.left = `${posX}%`;
+    particle.style.top = `${posY}%`;
+    particle.style.opacity = Math.random() * 0.5 + 0.1;
+    particle.style.backgroundColor = color;
+    particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+    
+    container.appendChild(particle);
+  }
+}
+
+// Hero animations
+function initHeroAnimations() {
+  // Burger image entrance
+  gsap.from("#hero-burger", {
+    duration: 1.5,
+    scale: 0.8,
+    opacity: 0,
+    rotate: -10,
+    ease: "power3.out",
+    delay: 0.5
+  });
+  
+  // Content entrance
+  gsap.from(".cinematic-text", {
+    duration: 1.2,
+    y: 50,
+    opacity: 0,
+    ease: "power3.out",
+    delay: 0.3
+  });
+  
+  gsap.from(".gradient-text", {
+    duration: 1.5,
+    y: 50,
+    opacity: 0,
+    ease: "power3.out",
+    delay: 0.6
+  });
+  
+  // Stats entrance
+  gsap.from(".glass-dark", {
+    duration: 1,
+    y: 30,
+    opacity: 0,
+    stagger: 0.1,
+    ease: "power3.out",
+    delay: 0.9
+  });
+  
+  // Button entrance
+  gsap.from("button", {
+    duration: 1,
+    y: 30,
+    opacity: 0,
+    stagger: 0.1,
+    ease: "power3.out",
+    delay: 1.2
+  });
+  
+  // Delivery bike animation
+  gsap.to(".delivery-bike", {
+    x: "+=20",
+    duration: 3,
+    repeat: -1,
+    yoyo: true,
+    ease: "sine.inOut"
+  });
+}
+
+// Pizza animation - Move on scroll
+function initPizzaAnimation() {
+  const pizzaImage = document.getElementById('pizza-image');
+  
+  if (pizzaImage) {
+    gsap.to(pizzaImage, {
+      scrollTrigger: {
+        trigger: "#restaurants",
+        start: "top center",
+        end: "bottom center",
+        scrub: 1.5,
+      },
+      x: window.innerWidth < 1024 ? 20 : 50,
+      rotation: window.innerWidth < 1024 ? 3 : 5,
+      scale: window.innerWidth < 1024 ? 1.02 : 1.05,
+      duration: 1
+    });
+  }
+}
+
+// Section reveal animations
+function initSectionReveals() {
+  const sections = document.querySelectorAll('.section-transition');
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('section-visible');
+      }
+    });
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -100px 0px'
+  });
+  
+  sections.forEach(section => observer.observe(section));
+}
+
+// Food card hover effects
+function initFoodCards() {
+  const cards = document.querySelectorAll('.food-card');
+  
+  cards.forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      gsap.to(card, {
+        duration: 0.3,
+        scale: 1.05,
+        y: -10,
+        boxShadow: "0 20px 40px rgba(255, 77, 0, 0.3)",
+        ease: "power2.out"
+      });
+    });
+    
+    card.addEventListener('mouseleave', () => {
+      gsap.to(card, {
+        duration: 0.3,
+        scale: 1,
+        y: 0,
+        boxShadow: "none",
+        ease: "power2.out"
+      });
+    });
+  });
+}
+
+// Mobile menu toggle
+function initMobileMenu() {
+  const menuButton = document.getElementById('mobile-menu-button');
+  const mobileMenu = document.getElementById('mobile-menu');
+  
+  if (menuButton && mobileMenu) {
+    menuButton.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      menuButton.innerHTML = mobileMenu.classList.contains('hidden') 
+        ? '<i class="fas fa-bars"></i>' 
+        : '<i class="fas fa-times"></i>';
+    });
+    
+    // Close menu when clicking a link
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        menuButton.innerHTML = '<i class="fas fa-bars"></i>';
+      });
+    });
+  }
+}
+
+// Smooth scrolling for navigation links
+function initSmoothScrolling() {
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      const targetId = this.getAttribute('href');
+      if (targetId === '#') return;
+      
+      const targetElement = document.querySelector(targetId);
+      if (targetElement) {
+        lenis.scrollTo(targetElement, {
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+          offset: -80 // Adjust for navbar height
+        });
+      }
+    });
+  });
+}
+
+// Navbar background on scroll
+function initNavbarScroll() {
+  const navbar = document.querySelector('nav');
+  
+  if (navbar) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        navbar.classList.add('glass-dark');
+        navbar.classList.remove('glass-nav');
+      } else {
+        navbar.classList.remove('glass-dark');
+        navbar.classList.add('glass-nav');
+      }
+    });
+  }
+}
+
+// Initialize everything
+document.addEventListener('DOMContentLoaded', () => {
+  createParticles();
+  initHeroAnimations();
+  initPizzaAnimation();
+  initSectionReveals();
+  initFoodCards();
+  initMobileMenu();
+  initSmoothScrolling();
+  initNavbarScroll();
+  
+  // Burger floating animation
+  gsap.to("#hero-burger", {
+    y: "+=20",
+    rotation: "+=2",
+    duration: 4,
+    repeat: -1,
+    yoyo: true,
+    ease: "sine.inOut"
+  });
+  
+  // Pizza floating animation
+  gsap.to("#pizza-image", {
+    y: "+=15",
+    rotation: "+=1",
+    duration: 3,
+    repeat: -1,
+    yoyo: true,
+    ease: "sine.inOut",
+    delay: 0.5
+  });
+  
+  // Floating food items
+  gsap.to(".absolute img", {
+    y: "+=10",
+    rotation: "+=1",
+    duration: 3,
+    repeat: -1,
+    yoyo: true,
+    ease: "sine.inOut",
+    stagger: 0.3
+  });
+});
+
+// Handle window resize
+window.addEventListener('resize', () => {
+  createParticles();
+});
+
+// Add click effects to buttons
+document.querySelectorAll('button').forEach(button => {
+  button.addEventListener('click', function(e) {
+    // Create ripple effect
+    const ripple = document.createElement('span');
+    const rect = this.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    
+    ripple.style.cssText = `
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      transform: scale(0);
+      animation: ripple 0.6s linear;
+      width: ${size}px;
+      height: ${size}px;
+      top: ${y}px;
+      left: ${x}px;
+      pointer-events: none;
+      z-index: 1;
+    `;
+    
+    this.appendChild(ripple);
+    
+    setTimeout(() => {
+      ripple.remove();
+    }, 600);
+  });
+});
+
+// Add custom CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes ripple {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #0b0b0f;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #ff4d00, #ff8e5c);
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #ff6a33, #ff4d00);
+  }
+  
+  /* Responsive padding utilities */
+  .py-25 {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
+  
+  @media (min-width: 640px) {
+    .py-25 {
+      padding-top: 7rem;
+      padding-bottom: 7rem;
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .py-25 {
+      padding-top: 8rem;
+      padding-bottom: 8rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .py-25 {
+      padding-top: 9rem;
+      padding-bottom: 9rem;
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .py-25 {
+      padding-top: 10rem;
+      padding-bottom: 10rem;
+    }
+  }
+  
+  /* Ensure content visibility */
+  section {
+    min-height: auto !important;
+  }
+  
+  #menu, #restaurants, #download {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .section-transition {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+`;
+document.head.appendChild(style);
+</script>
+
+</body>
+</html>
